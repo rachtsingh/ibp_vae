@@ -1,0 +1,22 @@
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+**/*.pyc
+data/
+logs/
+*.swp
+*.tar
+
+# CUDA/C/C++ stuff
+_ext/
+src/_ext/
+src/lgamma/_ext/
+*.o
+
+# MacOSX
+**/*.DS_Store
+
+# Odyssey
+slurm.*
+slurm/
