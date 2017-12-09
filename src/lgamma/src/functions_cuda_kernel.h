@@ -13,6 +13,7 @@ int lgamma_cuda_dbl_wrapped(int input_strideHeight, int input_strideWidth, int o
 int lbeta_cuda_dbl_wrapped(int a_strideHeight, int a_strideWidth, int b_strideHeight, int b_strideWidth, int output_strideHeight, int output_strideWidth, int height, int width, double *a_data, double *b_data, double *output_data);
 
 int sample_gamma_dbl_wrapped(int height, int width, double *a_data, double *output_data);
+int sample_beta_dbl_wrapped(int height, int width, double *a_data, double *b_data, double *output_data);
 void init_rand(void);
 
 #ifdef __cplusplus

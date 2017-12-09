@@ -68,6 +68,12 @@ def gamma_sample(a):
 def beta_sample(a, b):
     if not ((a.__class__ == torch.cuda.DoubleTensor) and (b.__class__ == torch.cuda.DoubleTensor)):
         pdb.set_trace()
-    samples_a = gamma_sample(a)
-    samples_b = gamma_sample(b)
-    return samples_a/(samples_a + samples_b)
+    global initialized
+    if not initialized:
+        functions.init_random()
+        initialized = True
+    if a.__class__ == torch.cuda.FloatTensor:
+        raise ValueError("haven't implemented this yet")
+    output = torch.cuda.DoubleTensor(a.size())
+    functions.sample_beta_dbl(a, b, output)
+    return output

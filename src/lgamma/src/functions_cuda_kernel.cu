@@ -49,23 +49,99 @@ __global__ void lbeta_cuda_dbl_kernel(int a_sheight, int a_swidth, int b_sheight
 
 __global__ void init(unsigned int seed) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    curand_init(seed, idx, 0, &global_states[idx]);     
+    curand_init(seed, idx, 0, &global_states[idx]);
     __syncthreads();
+}
+
+__device__ double sample_expo_internal(curandState_t *state) {
+    return -log(1.0 - curand_uniform(state));
+}
+
+__device__ double sample_gamma_internal(curandState_t *state, double shape) {
+    if (shape < 1.) {
+        double u, v, x, y;
+        while (1) {
+            u = curand_uniform(state);
+            v = sample_expo_internal(state);
+            if (u <= 1.0 - shape) {
+                x = pow(u, 1./shape);
+                if (x <= v) {
+                    return x;
+                }
+            }
+            else {
+                y = -log((1 - u)/shape);
+                x = pow(1.0 - shape + shape*y, 1./shape);
+                if (x <= (v + y)) {
+                    return x;
+                }
+            }
+        }
+    }
+    else if (shape > 1.) {
+        double d = shape - (1./3.);
+        double c = 1./sqrt(9. * d);
+        double u, v, x = 0;
+        do {
+          x = curand_normal(state);
+          v = (1 + c * x) * (1 + c * x) * (1 + c * x);
+          u = curand_uniform(state);
+        } while (v <= 0. || ((log(u) >= 0.5 * x * x + d * (1 - v + log(v)))) && (u < 1.0 - 0.0331*(x*x)*(x*x)));
+        return d * v;
+    }
+    else {
+        return sample_expo_internal(state);
+    }
 }
 
 // just for compilation purposes - this is Marsaglia's algorithm
 __global__ void sample_gamma_dbl_kernel(int height, int width, double *a_data, double *output_data) {
   for (int addr = threadIdx.x; addr < width * height; addr += blockDim.x) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    double d = a_data[addr]  - (1./3.);
-    double c = 1./sqrt(9. * d);
-    double u, v, x = 0;
-    do {
-      x = curand_normal(&global_states[idx]);
-      v = (1 + c * x) * (1 + c * x) * (1 + c * x);
-      u = curand_uniform(&global_states[idx]);
-    } while (v <= 0. || (log(u) >= 0.5 * x * x + d * (1 - v + log(v))));
-    output_data[addr] = d * v;
+    output_data[addr] = sample_gamma_internal(&global_states[idx], a_data[addr]);
+  }
+}
+
+// implementation of Johnk's algorithm
+__global__ void sample_beta_dbl_kernel(int height, int width, double *a_data, double *b_data, double *output_data) {
+  for (int addr = threadIdx.x; addr < width * height; addr += blockDim.x) {
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    double a = a_data[addr];
+    double b = b_data[addr];
+    if ((a <= 1.) && (b <= 1.)) {
+        double U, V, X, Y;
+
+        // some spacing issues here, fix TODO
+        while (1) {
+            U = curand_uniform(&global_states[idx]);
+            V = curand_uniform(&global_states[idx]);
+            X = pow(U, 1.0/a);
+            Y = pow(V, 1.0/b);
+
+            if ((X + Y) <=  1.0) {
+                if (X +Y > 0) {
+                    output_data[addr] = X / (X + Y);
+                    break;
+                }
+                else {
+                    double logX = log(U) / a;
+                    double logY = log(V) / b;
+                    double logM = logX > logY ? logX : logY;
+                    logX -= logM;
+                    logY -= logM;
+
+                    output_data[addr] = exp(logX - log(exp(logX) + exp(logY)));
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        double Ga = sample_gamma_internal(&global_states[idx], a_data[addr]);
+        double Gb = sample_gamma_internal(&global_states[idx], b_data[addr]);
+        output_data[addr] = Ga/(Ga + Gb);
+    }
   }
 }
 
@@ -145,6 +221,17 @@ int sample_gamma_dbl_wrapped(int height, int width, double *a_data, double *outp
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess) {
     printf("error in sample_gamma_dbl_wrapped: %s\n", cudaGetErrorString(err));
+    return 2;
+  }
+  return 0;
+}
+
+int sample_beta_dbl_wrapped(int height, int width, double *a_data, double *b_data, double *output_data) {
+  sample_beta_dbl_kernel<<<1, NUM_BLOCKS>>>(height, width, a_data, b_data, output_data);
+  cudaDeviceSynchronize();
+  cudaError_t err = cudaGetLastError();
+  if (err != cudaSuccess) {
+    printf("error in sample_beta_dbl_wrapped: %s\n", cudaGetErrorString(err));
     return 2;
   }
   return 0;

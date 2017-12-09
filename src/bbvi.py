@@ -15,8 +15,7 @@ from scipy.special import beta, digamma
 
 def sample_beta(a, b):
     if torch.cuda.is_available():
-        # return internals.beta_sample(a, b)
-        return torch.from_numpy(np.random.beta(a.cpu().numpy(), b.cpu().numpy())).cuda()
+        return internals.beta_sample(a, b)
     else:
         return torch.from_numpy(np.random.beta(a.numpy(), b.numpy()))
 
@@ -25,15 +24,6 @@ def sample_beta_prior(alpha0, size):
         return internals.beta_sample(torch.cuda.DoubleTensor(*size).zero_() + alpha0, torch.cuda.DoubleTensor(*size).zero_() + 1)
     else:
         return torch.from_numpy(np.random.beta(alpha0, 1, size=tuple(size))).double()
-
-def slow_beta(a, b):
-    return torch.from_numpy(beta(a.numpy(), b.numpy()))
-
-def slow_digamma(x):
-    if torch.cuda.is_available():
-        return (torch.from_numpy(digamma(x.cpu().numpy()))).cuda()
-    else:
-        return torch.from_numpy(digamma(x.numpy()))
 
 def fast_digamma(x):
     return internals.polygamma(0, x)

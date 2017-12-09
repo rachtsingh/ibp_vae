@@ -122,7 +122,7 @@ int lbeta_cuda(THCudaTensor *a, THCudaTensor *b, THCudaTensor *output) {
 
   int b_strideHeight = THCudaTensor_stride(state, b, 0);
   int b_strideWidth = THCudaTensor_stride(state, b, 1);
-  
+
   int output_strideHeight = THCudaTensor_stride(state, output, 0);
   int output_strideWidth = THCudaTensor_stride(state, output, 1);
 
@@ -156,7 +156,7 @@ int lbeta_cuda_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *b, THCudaDoubleTen
 
   int b_strideHeight = THCudaDoubleTensor_stride(state, b, 0);
   int b_strideWidth = THCudaDoubleTensor_stride(state, b, 1);
-  
+
   int output_strideHeight = THCudaDoubleTensor_stride(state, output, 0);
   int output_strideWidth = THCudaDoubleTensor_stride(state, output, 1);
 
@@ -187,12 +187,30 @@ int sample_gamma_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *output) {
   double *a_data, *output_data;
   a_data = THCudaDoubleTensor_data(state, a);
   output_data = THCudaDoubleTensor_data(state, output);
-  
+
   int height = THCudaDoubleTensor_size(state, a, 0);
   int width = THCudaDoubleTensor_size(state, a, 1);
 
   int error = 0;
   error = sample_gamma_dbl_wrapped(height, width, a_data, output_data);
+  if (error) {
+    THError("aborting, cuda kernel failed.\n");
+  }
+  return 0;
+}
+
+// only used if sampling using the above function doesn't work for numerical reasons
+int sample_beta_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *b, THCudaDoubleTensor *output) {
+  double *a_data, *b_data, *output_data;
+  a_data = THCudaDoubleTensor_data(state, a);
+  b_data = THCudaDoubleTensor_data(state, b);
+  output_data = THCudaDoubleTensor_data(state, output);
+
+  int height = THCudaDoubleTensor_size(state, a, 0);
+  int width = THCudaDoubleTensor_size(state, a, 1);
+
+  int error = 0;
+  error = sample_beta_dbl_wrapped(height, width, a_data, b_data, output_data);
   if (error) {
     THError("aborting, cuda kernel failed.\n");
   }

@@ -10,3 +10,4 @@ int lbeta_cuda_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *b, THCudaDoubleTen
 
 void init_random(void);
 int sample_gamma_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *output);
+int sample_beta_dbl(THCudaDoubleTensor *a, THCudaDoubleTensor *b, THCudaDoubleTensor *output);
