@@ -9,3 +9,15 @@ on putting all of the code up as soon as possible, and will do so over the next 
 if you run into problems by making an issue.
 
 We can also be contacted at [rachitsingh@college.harvard.edu](rachitsingh@college.harvard.edu), and [jeffreyling@alumni.harvard.edu](jeffreyling@alumni.harvard.edu), and feel free to send us an email.
+
+# Quickstart
+
+To run the code with GPU support, navigate to `src/lgamma` and do `./make.sh`.
+
+Navigate to base directory and run
+
+`python scripts/run_s_ibp_concrete.py --savefile testsave`
+
+`--savefile` is a required argument. Models will be saved under `models/` (last, and best over epochs) and train, valid, test curves and timings are saved under `runs/`.
+
+Use `--help` to see arguments.

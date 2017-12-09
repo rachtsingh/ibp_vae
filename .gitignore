@@ -5,6 +5,7 @@ __pycache__/
 **/*.pyc
 data/
 logs/
+runs/
 *.swp
 *.tar
 

@@ -14,7 +14,7 @@ from bbvi import Beta, BernoulliCV, calculate_cv_from_grads
 from .common import init_weights
 from training.mf_bbvi import elbo
 
-class IBP_DGM(nn.Module):
+class MFBBVI(nn.Module):
     """
     This model is an implementation of Chatzis (2014)
     Note that since we use BBVI, we need to the use the REINFORCE method/score function trick in order to get gradients right.
@@ -22,7 +22,7 @@ class IBP_DGM(nn.Module):
     """
     def __init__(self, dataset='mnist', max_truncation_level=100, alpha0=5., cv=False):
         # Only MNIST / Omniglot supported at the moment
-        super(IBP_DGM, self).__init__()
+        super(MFBBVI, self).__init__()
 
         self.truncation = max_truncation_level
         self.alpha0 = alpha0

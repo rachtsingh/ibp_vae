@@ -12,12 +12,12 @@ import torch.optim as optim
 
 from torchvision import transforms
 
+sys.path.append('src')
 from datasets.fixed_binarization import FixedBinarization
 from datasets.omniglot import Omniglot
 
-sys.path.append('src')
 from utils import save_checkpoint, gen_id
-from models.IBP_DGM import IBP_DGM
+from models.MFBBVI import MFBBVI
 from models.MFConcrete import MFConcrete
 from models.S_IBP_BBVI import S_IBP_BBVI
 from models.S_IBP_Concrete import S_IBP_Concrete
@@ -125,7 +125,7 @@ def main(args, model_type):
 
     # All switching logic is here.
     if model_type == 'mf_bbvi':
-        model_cls = IBP_DGM
+        model_cls = MFBBVI
         model_kwargs['cv'] = args.cv
         trainer = mf_bbvi.train
         if args.iwae:
@@ -168,6 +168,8 @@ def main(args, model_type):
         model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     eval_kwargs['model'] = model
+    if not os.path.isdir('models'):
+        os.mkdir('models')
 
     train_scores = np.zeros(args.epochs)
     validation_scores = np.zeros(args.epochs)
