@@ -18,6 +18,7 @@ class FixedBinarization(torch.utils.data.Dataset):
         self.root = os.path.expanduser(root)
         self.mode = mode
         self.transform = transform
+        self.root = 'data'
 
         if download:
             self.download()
@@ -42,7 +43,8 @@ class FixedBinarization(torch.utils.data.Dataset):
 
         def lines_to_np_array(lines):
             return np.array([[int(i) for i in line.split()] for line in lines])
-        
+
+        self.root = 'data'
         dataset_dir = os.path.join(self.root, 'fixed')
         
         if not os.path.exists(dataset_dir):
