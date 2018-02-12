@@ -25,10 +25,14 @@ if torch.cuda.is_available() and args.cuda:
     libraries += ["cudart", "cudadevrt"]
     extra_objects = ['src/functions.link.cu.o', 'src/internals.cu.o', 'src/functions_cuda_kernel.cu.o']
     library_dirs = [args.cuda_path, os.path.join(this_file, 'src/')]
+    include_dirs = ['/usr/local/cuda-7.5/include/']
 else:
     library_dirs = [os.path.join(this_file, 'src/')]
+    include_dirs = []
 
 extra_objects = [os.path.join(this_file, fname) for fname in extra_objects]
+
+print(torch.cuda.is_available() and args.cuda)
 
 ffi = create_extension(
     '_ext.functions',
@@ -38,6 +42,7 @@ ffi = create_extension(
     relative_to=__file__,
     with_cuda=(torch.cuda.is_available() and args.cuda),
     library_dirs=library_dirs,
+    include_dirs=include_dirs,
     libraries=libraries,
     extra_compile_args=["-std=gnu11"],
     extra_objects=extra_objects
